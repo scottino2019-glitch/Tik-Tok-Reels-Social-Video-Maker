@@ -154,6 +154,45 @@ export class CanvasRenderer {
   }
 
   // Generate CSS filter string combining brightness, contrast, saturation, and filter presets
+  private drawColorOrGradientBackground(
+    ctx: CanvasRenderingContext2D,
+    colorFill: string,
+    width: number,
+    height: number
+  ) {
+    if (!colorFill) {
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, width, height);
+      return;
+    }
+
+    if (colorFill.includes('gradient')) {
+      const matches = colorFill.match(/(#(?:[0-9a-fA-F]{3}){1,2}|rgba?\([^)]+\))/g);
+      if (matches && matches.length >= 2) {
+        const grad = ctx.createLinearGradient(0, 0, width, height);
+        matches.forEach((col, idx) => {
+          const stop = idx / (matches.length - 1);
+          try {
+            grad.addColorStop(stop, col);
+          } catch {
+            // ignore
+          }
+        });
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, width, height);
+        return;
+      }
+    }
+
+    try {
+      ctx.fillStyle = colorFill;
+      ctx.fillRect(0, 0, width, height);
+    } catch {
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, width, height);
+    }
+  }
+
   private getCssFilterString(
     brightness: number = 100,
     contrast: number = 100,
@@ -200,17 +239,12 @@ export class CanvasRenderer {
     ctx.filter = this.getCssFilterString(scene.brightness, scene.contrast, scene.saturation, scene.filter);
 
     // 1. Draw Media Background
-    if (scene.mediaType === 'color' || !scene.mediaUrl) {
-      ctx.fillStyle = scene.colorFill || '#0f172a';
-      ctx.fillRect(0, 0, width, height);
-    } else {
+    this.drawColorOrGradientBackground(ctx, scene.colorFill || '#0f172a', width, height);
+
+    if (scene.mediaType !== 'color' && scene.mediaUrl) {
       const media = this.getMediaElement(scene.mediaUrl, scene.mediaType);
       if (media) {
         this.drawMediaToCanvas(ctx, media, scene, width, height);
-      } else {
-        // Fallback loading tile
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(0, 0, width, height);
       }
     }
 
@@ -503,8 +537,8 @@ export class CanvasRenderer {
       ctx.rotate((textOverlay.rotation * Math.PI) / 180);
     }
 
-    // Set Font
-    const scaledFontSize = (textOverlay.fontSize / 1080) * canvasW;
+    // Set Font - Boosted font scaling so text overlays are big, bold and readable on 9:16 vertical videos
+    const scaledFontSize = Math.max(14, (textOverlay.fontSize * 1.65 / 1080) * canvasW);
     ctx.font = `800 ${scaledFontSize}px '${textOverlay.fontFamily || 'Montserrat'}', sans-serif`;
     ctx.textAlign = textOverlay.align || 'center';
     ctx.textBaseline = 'middle';

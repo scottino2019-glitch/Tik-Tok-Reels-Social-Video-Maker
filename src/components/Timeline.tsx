@@ -132,7 +132,7 @@ export const Timeline: React.FC<TimelineProps> = ({
                   {scene.mediaType === 'color' || !scene.mediaUrl ? (
                     <div
                       className="w-full h-full"
-                      style={{ backgroundColor: scene.colorFill || '#0f172a' }}
+                      style={{ background: scene.colorFill || '#0f172a' }}
                     />
                   ) : scene.mediaType === 'image' ? (
                     <img

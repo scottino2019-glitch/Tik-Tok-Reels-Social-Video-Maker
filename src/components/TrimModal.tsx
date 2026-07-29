@@ -87,7 +87,12 @@ export const TrimModal: React.FC<TrimModalProps> = ({
 
         {/* Media Preview Player */}
         <div className="relative aspect-video max-h-64 bg-[#1E293B] rounded-2xl overflow-hidden border border-slate-700 flex items-center justify-center">
-          {scene.mediaType === 'video' ? (
+          {scene.mediaType === 'color' || !scene.mediaUrl ? (
+            <div
+              className="w-full h-full"
+              style={{ background: scene.colorFill || '#0f172a' }}
+            />
+          ) : scene.mediaType === 'video' ? (
             <video
               ref={videoRef}
               src={scene.mediaUrl}

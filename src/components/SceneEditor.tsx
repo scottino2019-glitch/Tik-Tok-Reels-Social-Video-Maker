@@ -55,7 +55,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* 1. Duration & Fit Mode */}
         <div className="space-y-3 bg-[#0F172A]/80 p-3.5 rounded-xl border border-slate-700/80">
           <div className="flex items-center justify-between">
@@ -93,7 +93,7 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({
           <div className="pt-2 border-t border-slate-700/80">
             <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5 mb-2">
               <Crop className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Adattamento Immagine / Video</span>
+              <span>Adattamento Media</span>
             </label>
 
             <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-900 rounded-xl border border-slate-700">
@@ -151,7 +151,114 @@ export const SceneEditor: React.FC<SceneEditorProps> = ({
           )}
         </div>
 
-        {/* 2. Filters & Adjustments */}
+        {/* 2. Background Color & Solid Fill */}
+        <div className="space-y-3 bg-[#0F172A]/80 p-3.5 rounded-xl border border-slate-700/80">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <Palette className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Sfondo & Tinta Unita</span>
+            </label>
+            <span className="text-[10px] font-mono font-bold text-cyan-400 uppercase">
+              {scene.mediaType === 'color' ? 'Tinta Unita' : 'Media + Sfondo'}
+            </span>
+          </div>
+
+          {/* Toggle Type */}
+          <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-900 rounded-xl border border-slate-700">
+            <button
+              onClick={() => {
+                const isVid = scene.mediaUrl && scene.mediaUrl.match(/\.(mp4|webm|mov)$/i);
+                updateScene(sceneIndex, { mediaType: isVid ? 'video' : 'image' });
+              }}
+              className={`py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                scene.mediaType !== 'color'
+                  ? 'bg-violet-600 text-white font-bold border border-violet-400 shadow-md'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Foto / Video
+            </button>
+            <button
+              onClick={() =>
+                updateScene(sceneIndex, {
+                  mediaType: 'color',
+                  colorFill: scene.colorFill || '#0f172a',
+                })
+              }
+              className={`py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                scene.mediaType === 'color'
+                  ? 'bg-violet-600 text-white font-bold border border-violet-400 shadow-md'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Tinta Unita
+            </button>
+          </div>
+
+          {/* Color Presets & Picker */}
+          <div className="space-y-2 pt-1 text-xs">
+            <div className="flex items-center justify-between text-[11px] font-bold text-slate-300">
+              <span>Colore Sfondo:</span>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="color"
+                  value={scene.colorFill && !scene.colorFill.includes('gradient') ? scene.colorFill : '#0f172a'}
+                  onChange={(e) =>
+                    updateScene(sceneIndex, {
+                      colorFill: e.target.value,
+                    })
+                  }
+                  className="w-5 h-5 rounded cursor-pointer bg-transparent border-0"
+                />
+                <input
+                  type="text"
+                  value={scene.colorFill || '#0f172a'}
+                  onChange={(e) =>
+                    updateScene(sceneIndex, {
+                      colorFill: e.target.value,
+                    })
+                  }
+                  placeholder="#0f172a"
+                  className="w-20 bg-slate-900 border border-slate-700 rounded text-[10px] font-mono text-center text-white px-1 py-0.5"
+                />
+              </div>
+            </div>
+
+            {/* Quick Swatches */}
+            <div className="grid grid-cols-6 gap-1.5 pt-1">
+              {[
+                '#000000',
+                '#0f172a',
+                '#ffffff',
+                '#7c3aed',
+                '#ec4899',
+                '#ef4444',
+                '#f97316',
+                '#eab308',
+                '#10b981',
+                '#06b6d4',
+                'linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #f093fb 100%)',
+                'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              ].map((color, i) => (
+                <button
+                  key={i}
+                  onClick={() =>
+                    updateScene(sceneIndex, {
+                      colorFill: color,
+                    })
+                  }
+                  title={color}
+                  className={`h-7 rounded-lg border transition-all hover:scale-105 shadow-sm ${
+                    scene.colorFill === color ? 'border-2 border-white ring-2 ring-cyan-400' : 'border-slate-700/80'
+                  }`}
+                  style={{ background: color }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* 3. Filters & Adjustments */}
         <div className="space-y-3 bg-[#0F172A]/80 p-3.5 rounded-xl border border-slate-700/80">
           <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />

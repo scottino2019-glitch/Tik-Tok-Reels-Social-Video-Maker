@@ -36,7 +36,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
       id: `text-${Date.now()}`,
       text: 'NUOVO TESTO TIKTOK',
       fontFamily: 'Bebas Neue',
-      fontSize: 36,
+      fontSize: 54,
       color: '#ffffff',
       backgroundColor: '#facc15',
       style: 'tiktok-yellow',
@@ -184,19 +184,41 @@ export const TextEditor: React.FC<TextEditorProps> = ({
                 </div>
 
                 {/* Font Size */}
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <div className="flex justify-between text-[11px] font-bold text-slate-300">
-                    <span>Dimensione</span>
-                    <span className="font-mono text-pink-400">{activeOverlay.fontSize}px</span>
+                    <span>Dimensione Testo</span>
+                    <span className="font-mono text-pink-400 font-bold">{activeOverlay.fontSize}px</span>
                   </div>
                   <input
                     type="range"
-                    min={18}
-                    max={72}
+                    min={20}
+                    max={160}
+                    step={2}
                     value={activeOverlay.fontSize}
                     onChange={(e) => handleUpdateText({ fontSize: parseInt(e.target.value) })}
                     className="w-full accent-pink-500 bg-slate-800 h-1.5 rounded-full appearance-none cursor-pointer"
                   />
+                  {/* Quick Preset Buttons */}
+                  <div className="grid grid-cols-4 gap-1 text-[10px] pt-1">
+                    {[
+                      { label: 'Piccolo', size: 32 },
+                      { label: 'Medio', size: 54 },
+                      { label: 'Grande', size: 76 },
+                      { label: 'Gigante', size: 110 },
+                    ].map((p) => (
+                      <button
+                        key={p.size}
+                        onClick={() => handleUpdateText({ fontSize: p.size })}
+                        className={`py-1 rounded-lg border font-bold transition-all ${
+                          activeOverlay.fontSize === p.size
+                            ? 'bg-pink-600 text-white border-pink-400 shadow'
+                            : 'bg-slate-900 text-slate-400 border-slate-700 hover:text-white'
+                        }`}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
