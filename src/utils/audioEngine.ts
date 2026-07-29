@@ -562,7 +562,9 @@ class WebAudioEngine {
     if (!isPlaying || this.isMuted || !soundEffects.length) return;
 
     soundEffects.forEach((sfx) => {
-      if (prevTime < sfx.triggerTime && currentTime >= sfx.triggerTime) {
+      const isStartInstant = prevTime === 0 && Math.abs(sfx.triggerTime) < 0.1;
+      const passedWindow = prevTime < sfx.triggerTime && currentTime >= sfx.triggerTime;
+      if (isStartInstant || passedWindow) {
         this.playSoundEffect(sfx.type, sfx.volume);
       }
     });

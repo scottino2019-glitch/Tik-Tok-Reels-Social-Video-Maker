@@ -42,7 +42,31 @@ export const PreviewPlayer: React.FC<PreviewPlayerProps> = ({
 
   const totalDuration = canvasRenderer.getTotalDuration(project.scenes);
 
-  const lastTimeRef = useRef<number>(0);
+  const currentTimeRef = useRef(currentTime);
+  const isPlayingRef = useRef(isPlaying);
+  const isLoopingRef = useRef(isLooping);
+  const totalDurationRef = useRef(totalDuration);
+  const projectRef = useRef(project);
+
+  useEffect(() => {
+    currentTimeRef.current = currentTime;
+  }, [currentTime]);
+
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
+
+  useEffect(() => {
+    isLoopingRef.current = isLooping;
+  }, [isLooping]);
+
+  useEffect(() => {
+    totalDurationRef.current = totalDuration;
+  }, [totalDuration]);
+
+  useEffect(() => {
+    projectRef.current = project;
+  }, [project]);
 
   // High FPS render loop
   useEffect(() => {
@@ -50,57 +74,64 @@ export const PreviewPlayer: React.FC<PreviewPlayerProps> = ({
     let lastTimestamp: number | null = null;
 
     const render = (timestamp: number) => {
-      const prevTime = lastTimeRef.current;
+      if (isPlayingRef.current) {
+        if (lastTimestamp !== null) {
+          const delta = (timestamp - lastTimestamp) / 1000;
+          const prevTime = currentTimeRef.current;
+          let nextTime = prevTime + delta;
 
-      if (lastTimestamp !== null && isPlaying) {
-        const delta = (timestamp - lastTimestamp) / 1000;
-        setCurrentTime((prev) => {
-          let next = prev + delta;
-          if (next >= totalDuration) {
-            if (isLooping) {
-              next = 0;
+          if (nextTime >= totalDurationRef.current) {
+            if (isLoopingRef.current) {
+              nextTime = 0;
             } else {
               setIsPlaying(false);
-              next = totalDuration;
+              isPlayingRef.current = false;
+              nextTime = totalDurationRef.current;
             }
           }
-          return next;
-        });
-      }
-      lastTimestamp = timestamp;
 
-      // Draw canvas
+          // Trigger Sound Effects across precise frame window
+          audioEngine.playTimelineSoundEffects(
+            projectRef.current.soundEffects,
+            nextTime,
+            prevTime,
+            true
+          );
+
+          // Sync background audio tracks
+          projectRef.current.audioTracks.forEach((track) => {
+            audioEngine.playAudioTrackAt(track, nextTime, true);
+          });
+
+          currentTimeRef.current = nextTime;
+          setCurrentTime(nextTime);
+        }
+        lastTimestamp = timestamp;
+      } else {
+        lastTimestamp = null;
+        audioEngine.stopAll();
+      }
+
+      // Draw canvas frame
       const canvas = canvasRef.current;
       if (canvas) {
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          const dims = canvasRenderer.getCanvasDimensions(project.aspectRatio);
+          const dims = canvasRenderer.getCanvasDimensions(projectRef.current.aspectRatio);
           if (canvas.width !== dims.width || canvas.height !== dims.height) {
             canvas.width = dims.width;
             canvas.height = dims.height;
           }
-          canvasRenderer.renderFrame(ctx, project, currentTime, dims.width, dims.height);
+          canvasRenderer.renderFrame(ctx, projectRef.current, currentTimeRef.current, dims.width, dims.height);
         }
       }
-
-      // Sync Audio Tracks and Timeline Sound Effects
-      if (isPlaying) {
-        project.audioTracks.forEach((track) => {
-          audioEngine.playAudioTrackAt(track, currentTime, isPlaying);
-        });
-        audioEngine.playTimelineSoundEffects(project.soundEffects, currentTime, prevTime, isPlaying);
-      } else {
-        audioEngine.stopAll();
-      }
-
-      lastTimeRef.current = currentTime;
 
       animId = requestAnimationFrame(render);
     };
 
     animId = requestAnimationFrame(render);
     return () => cancelAnimationFrame(animId);
-  }, [isPlaying, currentTime, project, totalDuration, isLooping, setCurrentTime, setIsPlaying]);
+  }, [setIsPlaying, setCurrentTime]);
 
   // Handle Playback toggle
   const togglePlay = () => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AudioTrack, SoundEffect } from '../types';
+import { AudioTrack, SoundEffect, Scene } from '../types';
 import { BUILTIN_AUDIO_TRACKS, SOUND_EFFECTS_LIST } from '../data/builtInAssets';
 import { audioEngine } from '../utils/audioEngine';
 import { 
@@ -12,12 +12,14 @@ import {
   Sliders, 
   Clock, 
   Sparkles,
-  Disc
+  Disc,
+  Zap
 } from 'lucide-react';
 
 interface AudioEditorProps {
   audioTracks: AudioTrack[];
   soundEffects: SoundEffect[];
+  scenes?: Scene[];
   setAudioTracks: React.Dispatch<React.SetStateAction<AudioTrack[]>>;
   setSoundEffects: React.Dispatch<React.SetStateAction<SoundEffect[]>>;
   totalDuration: number;
@@ -26,6 +28,7 @@ interface AudioEditorProps {
 export const AudioEditor: React.FC<AudioEditorProps> = ({
   audioTracks,
   soundEffects,
+  scenes = [],
   setAudioTracks,
   setSoundEffects,
   totalDuration,
@@ -89,6 +92,46 @@ export const AudioEditor: React.FC<AudioEditorProps> = ({
     };
     setSoundEffects((prev) => [...prev, newSFX]);
     audioEngine.playSoundEffect(type, 0.8);
+  };
+
+  const handleAutoSyncAllScenes = () => {
+    if (!scenes || scenes.length === 0) return;
+    const sfxTypes: { type: SoundEffect['type']; name: string }[] = [
+      { type: 'pop', name: 'Pop Intro' },
+      { type: 'whoosh', name: 'Whoosh Transizione' },
+      { type: 'ding', name: 'Ding Traguardo' },
+      { type: 'shutter', name: 'Scatto Macchina Fotografica' },
+      { type: 'bass', name: 'Bass Drop' },
+      { type: 'applause', name: 'Applausi' },
+    ];
+
+    const generatedSFX: SoundEffect[] = [];
+    let cumulativeTime = 0;
+
+    scenes.forEach((sc, idx) => {
+      if (idx === 0) {
+        generatedSFX.push({
+          id: `sfx-auto-0-${Date.now()}`,
+          name: 'Pop Intro (Foto 1)',
+          type: 'pop',
+          triggerTime: 0.1,
+          volume: 0.8,
+        });
+      } else {
+        const tObj = sfxTypes[idx % sfxTypes.length];
+        generatedSFX.push({
+          id: `sfx-auto-${idx}-${Date.now()}`,
+          name: `${tObj.name} (Foto ${idx + 1})`,
+          type: tObj.type,
+          triggerTime: Math.max(0.1, Number((cumulativeTime - 0.1).toFixed(1))),
+          volume: 0.85,
+        });
+      }
+      cumulativeTime += sc.duration;
+    });
+
+    setSoundEffects(generatedSFX);
+    audioEngine.playSoundEffect('whoosh', 0.8);
   };
 
   const handleDeleteSFX = (id: string) => {
@@ -249,10 +292,22 @@ export const AudioEditor: React.FC<AudioEditorProps> = ({
 
         {/* Right Column: Sound Effects Library (SFX) */}
         <div className="space-y-3 bg-[#0F172A]/80 p-3.5 rounded-xl border border-slate-700/80">
-          <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Libreria Effetti Sonori (SFX)</span>
-          </span>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Libreria Effetti Sonori (SFX)</span>
+            </span>
+            {scenes.length > 0 && (
+              <button
+                onClick={handleAutoSyncAllScenes}
+                className="px-2.5 py-1 bg-gradient-to-r from-amber-500 to-pink-500 hover:from-amber-400 hover:to-pink-400 text-white font-bold rounded-lg text-[10px] shadow-sm flex items-center gap-1 cursor-pointer transition-all"
+                title="Genera un effetto sonoro per ogni foto/scena presente nel progetto"
+              >
+                <Zap className="w-3 h-3 fill-current" />
+                <span>Sincronizza per Tutte le Foto ({scenes.length})</span>
+              </button>
+            )}
+          </div>
 
           {/* Quick SFX Buttons */}
           <div className="grid grid-cols-2 gap-1.5">

@@ -273,6 +273,12 @@ export const STARTER_TEMPLATES: PresetTemplate[] = [
     ],
     soundEffects: [
       {
+        name: 'Pop Intro',
+        type: 'pop',
+        triggerTime: 0.1,
+        volume: 0.8,
+      },
+      {
         name: 'Whoosh',
         type: 'whoosh',
         triggerTime: 2.4,
@@ -371,7 +377,20 @@ export const STARTER_TEMPLATES: PresetTemplate[] = [
         fadeOut: true,
       },
     ],
-    soundEffects: [],
+    soundEffects: [
+      {
+        name: 'Scatto Foto',
+        type: 'shutter',
+        triggerTime: 0.1,
+        volume: 0.8,
+      },
+      {
+        name: 'Whoosh Transizione',
+        type: 'whoosh',
+        triggerTime: 3.4,
+        volume: 0.85,
+      },
+    ],
   },
   {
     id: 'product-showcase',
@@ -474,6 +493,12 @@ export const STARTER_TEMPLATES: PresetTemplate[] = [
         type: 'pop',
         triggerTime: 0.1,
         volume: 0.9,
+      },
+      {
+        name: 'Whoosh Transizione',
+        type: 'whoosh',
+        triggerTime: 2.7,
+        volume: 0.85,
       },
     ],
   },

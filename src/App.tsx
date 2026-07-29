@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Project, Scene, AspectRatio, TransitionType, PresetTemplate } from './types';
+import { Project, Scene, AspectRatio, TransitionType, PresetTemplate, SoundEffect } from './types';
 import { STARTER_TEMPLATES } from './data/builtInAssets';
 import { Header } from './components/Header';
 import { PreviewPlayer } from './components/PreviewPlayer';
@@ -97,10 +97,32 @@ export default function App() {
       colorFill: mediaType === 'color' ? (url || '#0f172a') : undefined,
     };
 
-    setProject((prev) => ({
-      ...prev,
-      scenes: [...prev.scenes, newScene],
-    }));
+    const sfxPresets: { type: SoundEffect['type']; name: string }[] = [
+      { type: 'whoosh', name: 'Whoosh' },
+      { type: 'pop', name: 'Pop' },
+      { type: 'shutter', name: 'Scatto Foto' },
+      { type: 'ding', name: 'Ding' },
+      { type: 'bass', name: 'Bass Drop' },
+      { type: 'applause', name: 'Applausi' },
+    ];
+
+    setProject((prev) => {
+      const currentTotalDuration = prev.scenes.reduce((acc, s) => acc + s.duration, 0);
+      const sfxPreset = sfxPresets[prev.scenes.length % sfxPresets.length];
+      const autoSFX: SoundEffect = {
+        id: `sfx-${Date.now()}`,
+        name: `${sfxPreset.name} (Foto ${prev.scenes.length + 1})`,
+        type: sfxPreset.type,
+        triggerTime: Math.max(0.1, Number((currentTotalDuration - 0.1).toFixed(1))),
+        volume: 0.8,
+      };
+
+      return {
+        ...prev,
+        scenes: [...prev.scenes, newScene],
+        soundEffects: [...prev.soundEffects, autoSFX],
+      };
+    });
     setActiveSceneIndex(project.scenes.length);
   };
 
@@ -301,6 +323,7 @@ export default function App() {
             <AudioEditor
               audioTracks={project.audioTracks}
               soundEffects={project.soundEffects}
+              scenes={project.scenes}
               setAudioTracks={(tracks) =>
                 setProject((prev) => ({
                   ...prev,
