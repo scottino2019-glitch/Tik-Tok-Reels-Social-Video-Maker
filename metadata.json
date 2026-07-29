@@ -1,0 +1,6 @@
+{
+  "name": "TikTok & Reels Social Video Maker",
+  "description": "Create short TikTok and Facebook Reels videos with photos, clips, animated text overlays, transition library, precise trimmer, audio tracks, filters, and fast export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
